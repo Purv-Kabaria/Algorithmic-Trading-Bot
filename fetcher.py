@@ -1,5 +1,11 @@
 import yfinance as yf
+from datetime import datetime, timedelta
 import time
+
+def get_next_minute():
+    now = datetime.now()
+    next_minute = (now + timedelta(minutes=1)).replace(second=0, microsecond=0)
+    return (next_minute - now).total_seconds()
 
 def get_data():
     try:
@@ -8,29 +14,35 @@ def get_data():
         
         if not data.empty:
             latest = data.iloc[-1]
+            current_time = datetime.now().replace(second=0, microsecond=0)
             
-            print(f"O:   ₹{latest['Open']:.2f}")
-            print(f"H:   ₹{latest['High']:.2f}")
-            print(f"L:    ₹{latest['Low']:.2f}")
-            print(f"C:  ₹{latest['Close']:.2f}")
+            print(current_time.strftime("%Y-%m-%d %H:%M:00"))
+            print(f"O: ₹{latest['Open']:.2f}")
+            print(f"H: ₹{latest['High']:.2f}")
+            print(f"L: ₹{latest['Low']:.2f}")
+            print(f"C: ₹{latest['Close']:.2f}")
             print()
-            
         return data
+    
     except Exception as e:
-        print(f"{e}")
+        print(f"Error: {e}")
         return None
 
-def monitor(interval_seconds=60):
-    print("Starting Nifty 50 price monitor...")
+def monitor():
+    print("Starting price monitor...")
     
     while True:
         try:
+            wait_time = get_next_minute()
+            time.sleep(wait_time)
             get_data()
-            time.sleep(interval_seconds)
+            
         except KeyboardInterrupt:
+            print("\nStopping monitor...")
             break
-        except Exception as e:
-            print(f"{e}")
-            time.sleep(interval_seconds)
 
-monitor(10)
+        except Exception as e:
+            print(f"Error: {e}")
+            time.sleep(get_next_minute())
+
+monitor()
