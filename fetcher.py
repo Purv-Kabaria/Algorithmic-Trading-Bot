@@ -1,6 +1,10 @@
 import yfinance as yf
 from datetime import datetime, timedelta
+import streaming_indicators as si
 import time
+
+period = 5
+SMA = si.SMA(period)
 
 def get_next_minute():
     now = datetime.now()
@@ -13,20 +17,17 @@ def get_data():
         data = nifty.history(period="1d", interval="1m")
         
         if not data.empty:
-            latest = data.iloc[-1]
+            latest_candle = data.iloc[-1]
+            close_price = latest_candle['Close']
+            sma = SMA.update(close_price)
             current_time = datetime.now().replace(second=0, microsecond=0)
             
-            print(current_time.strftime("%Y-%m-%d %H:%M:00"))
-            print(f"O: ₹{latest['Open']:.2f}")
-            print(f"H: ₹{latest['High']:.2f}")
-            print(f"L: ₹{latest['Low']:.2f}")
-            print(f"C: ₹{latest['Close']:.2f}")
-            print()
-        return data
+            print(f"\n{current_time.strftime('%Y-%m-%d %H:%M:00')}")
+            print(f"Latest Close Price: ₹{close_price:.2f}")
+            print(sma)
     
     except Exception as e:
         print(f"Error: {e}")
-        return None
 
 def monitor():
     print("Starting price monitor...")
